@@ -1,0 +1,6 @@
+[Fatal Error] :1:456:
+The entity name must immediately follow the '&' in the entity reference.
+
+can be caused by wrong format
+
+[Fatal Error] :1:55: White spaces are required between publicId and systemId.

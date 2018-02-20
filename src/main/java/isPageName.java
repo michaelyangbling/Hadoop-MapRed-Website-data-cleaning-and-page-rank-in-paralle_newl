@@ -8,7 +8,8 @@ import java.io.IOException;
 public class isPageName implements WritableComparable<isPageName> {
     int isPage;
     String PageName;
-
+    public isPageName() {
+    }
     public isPageName(int isPage, String PageName) {
         this.isPage=isPage;
         this.PageName=PageName;
@@ -24,12 +25,12 @@ public class isPageName implements WritableComparable<isPageName> {
         PageName = WritableUtils.readString(in);
     }
 
-    public int compareTo(isPageName ip) {
-        int cmp = oneline.compare(isPage, ip.isPage);
+    public int compareTo(isPageName ipn) {
+        int cmp = oneline.compare(isPage, ipn.isPage);
         if (cmp != 0) {
             return cmp;
         }
-        return PageName.compareTo(ip.PageName);//sort2nd.compare(year,sy.year); }
+        return PageName.compareTo(ipn.PageName);//sort2nd.compare(year,sy.year); }
 
 
     }

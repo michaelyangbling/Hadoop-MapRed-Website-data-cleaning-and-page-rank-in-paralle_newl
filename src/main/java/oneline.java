@@ -1,7 +1,7 @@
 /* Pseudocode:
 class mapper {
    map(line, text){  //when first element is 0 : dummy key
-   emit( [1,pageName], linkName )  //deal with repeating linkName per pageName here
+   emit( [1,pageName], linkName )  //not deal with repeating linkName per pageName here
    emit ( [0,dummy 1], pageName)
    ...
    emit ( [0,dummy k], pageName ) //give collection of pageNames to all k reducers
@@ -48,11 +48,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Partitioner;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
+
+
 import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.io.StringReader;
 import java.net.URLDecoder;
 import java.util.LinkedList;
@@ -63,7 +62,6 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -118,23 +116,40 @@ public class oneline {
                     try {
                         xmlReader.parse(new InputSource(new StringReader(html)));
                     } catch (Exception e) {
-                        for(String val:linkPageNames) {
-                            for(int j=0;j<5/*numPartitioners*/;j++){
+                            if(pageName.equals("")) //convert possible empty name to ~~emp
+                              {pageName="e~mp";}
+                            for(int j=0;j<5/*numPartitioners*/;j++){//dummy key to send collection
                                 context.write(new isPageName(0,Integer.toString(j)), new Text(pageName));
                             }
-                            context.write(new isPageName(1,pageName), new Text(""));
-                        }
-                        // do not Discard ill-formatted pages. emit instead
+                            context.write(new isPageName(1,pageName), new Text("~~~"));//no link
+
+                        // do not Discard ill-formatted pages. emit instead ~~~meaning None
                         continue;
                     }
 
                     // always print the page and its links.
-                    for(String val:linkPageNames) {
-                        for(int j=0;j<5/*numPartitioners*/;j++){
-                          context.write(new isPageName(0,Integer.toString(j)), new Text(pageName));
+                    if(linkPageNames.size()!=0) {
+                        if(pageName.equals(""))
+                          {pageName="e~mp";}
+                        for (String val : linkPageNames) {
+                            if(val.equals(""))
+                              {context.write(new isPageName(1, pageName), new Text("e~mp"));}
+                             else
+                              {context.write(new isPageName(1, pageName), new Text(val));}
                         }
-                        context.write(new isPageName(1,pageName), new Text(val));
+                        for (int j = 0; j < 5/*numPartitioners*/; j++) {
+                            context.write(new isPageName(0, Integer.toString(j)), new Text(pageName));
+                        }
                     }
+                    else{
+                        if(pageName.equals(""))
+                          {pageName="e~mp";}
+                        for(int j=0;j<5/*numPartitioners*/;j++){
+                            context.write(new isPageName(0,Integer.toString(j)), new Text(pageName));
+                        }
+                        context.write(new isPageName(1,pageName), new Text("~~~"));
+                    }
+
                 }
 
             } catch (Exception e) {
@@ -197,58 +212,70 @@ public class oneline {
 
     }
 
-   /* public static class myPartitioner
-            extends Partitioner<staYear, info> { //partition(hash) by station(string)
-        public int getPartition(staYear key, info value, int numPartitions) {
-            return Math.abs(key.station.hashCode()) % numPartitions;
+   public static class myPartitioner
+            extends Partitioner<isPageName, Text> { //partition(hash) by station(string)
+        public int getPartition(isPageName key, Text value, int numPartitions) {
+            if(key.isPage==1){
+                return Math.abs(key.PageName.hashCode()) % numPartitions;
+            }
+            else
+                {return Integer.parseInt(key.PageName);}
         }
     }
 
+
     public static class myReducer
-            extends Reducer<staYear,info,Text,Text> {
-        public void reduce(staYear key, Iterable<info> iterable,
-                           Context context
-        ) throws IOException, InterruptedException {
+            extends Reducer<isPageName,Text,NullWritable,Text> {
+        private Set<String> pageSet = new HashSet<String>();
+        public void reduce(isPageName key, Iterable<Text> iterable,
+                           Context context) throws IOException, InterruptedException {
+            String currentLink;
+            if(key.isPage==0){ //recover collection
+                for(Text val:iterable){
+                    pageSet.add(val.toString());
+                }
+            }
+            else {
+                Set<String> linkSet = new HashSet<String>();
+                String out;
+                out=key.PageName;
+                for (Text val : iterable) { //use ~~ to concat outputs
+                    currentLink=val.toString();
+                    if (!currentLink.equals("~~~")){    //if this is an existing link
+                        if(!currentLink.equals(key.PageName)) {// if not the pageName
+                            if (pageSet.contains(currentLink)) {//delete pointed links  not in the collection
+                                linkSet.add(currentLink);
+                            }
+                        }
+                    }
+
+                }
+                for (String link:linkSet){ //get adjacent list
+                    out=out+"~~"+link;
+                }
+                context.write( NullWritable.get(), new Text(out));
+            }
 
         }
-    }*/
+    }
     public static void main(String[] args) throws Exception {
-     /*   Configuration conf = new Configuration();
+        Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "myjob");
-        job.setJarByClass(sort2nd.class);
+        job.setJarByClass(myMapper.class);
 
         job.setMapperClass(myMapper.class);
         job.setReducerClass(myReducer.class);
         job.setPartitionerClass(myPartitioner.class);
-        job.setGroupingComparatorClass(groupComparator.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        job.setMapOutputKeyClass(staYear.class);
-        job.setMapOutputValueClass(info.class);
+        job.setMapOutputKeyClass(isPageName.class);
+        job.setMapOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);*/
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "Mapper_Only_Job");
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
 
-        job.setJarByClass(oneline.class);
-        job.setMapperClass(myMapper.class);
-        job.setOutputKeyClass(isPageName.class);
-        job.setOutputValueClass(Text.class);
-        //job.setInputFormatClass(TextInputFormat.class);
-        //job.setOutputFormatClass(TextOutputFormat.class);
-
-        // Sets reducer tasks to 0
-        job.setNumReduceTasks(0);
-
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-        boolean result = job.waitForCompletion(true);
-
-        System.exit(result ? 0 : 1);
     }
 
 

@@ -5,7 +5,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class isPageName implements WritableComparable<isPageName> {
+public class isPageName implements WritableComparable<isPageName> {//define customized key here
     int isPage;
     String PageName;
     public isPageName() {

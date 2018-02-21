@@ -22,7 +22,7 @@ class reducer{
      and don't add duplicates
      a set data structure is sufficient for this requirement
 
-     emit(pageName, linkNames) //e.x. comma or ~ separated
+     emit(pageName, linkNames) //e.x. ~~ separated
 }
 */
 
@@ -68,6 +68,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import org.apache.hadoop.mapred.JobConf;
 
 public class oneline {
 
@@ -86,6 +87,16 @@ public class oneline {
             // Keep only html filenames ending relative paths and not containing tilde (~).
             linkPattern = Pattern.compile("^\\..*/([^~]+)\\.html$");
         }
+        private int numSetReducers;
+        protected void setup(Context context) throws IOException,
+                InterruptedException {
+            Configuration conf = context.getConfiguration();
+            String a=conf.get("numSetReducers");
+            numSetReducers=Integer.parseInt(conf.get("numSetReducers"));
+            System.out.println(numSetReducers);
+            // and then you can use it
+        }
+
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
             try {
@@ -118,7 +129,7 @@ public class oneline {
                     } catch (Exception e) {
                             if(pageName.equals("")) //convert possible empty name to ~~emp
                               {pageName="e~mp";}
-                            for(int j=0;j<5/*numPartitioners*/;j++){//dummy key to send collection
+                            for(int j=0;j<numSetReducers/*numPartitioners*/;j++){//dummy key to send collection
                                 context.write(new isPageName(0,Integer.toString(j)), new Text(pageName));
                             }
                             context.write(new isPageName(1,pageName), new Text("~~~"));//no link
@@ -137,14 +148,14 @@ public class oneline {
                              else
                               {context.write(new isPageName(1, pageName), new Text(val));}
                         }
-                        for (int j = 0; j < 5/*numPartitioners*/; j++) {
+                        for (int j = 0; j < numSetReducers/*numPartitioners*/; j++) {
                             context.write(new isPageName(0, Integer.toString(j)), new Text(pageName));
                         }
                     }
                     else{
                         if(pageName.equals(""))
                           {pageName="e~mp";}
-                        for(int j=0;j<5/*numPartitioners*/;j++){
+                        for(int j=0;j<numSetReducers/*numPartitioners*/;j++){
                             context.write(new isPageName(0,Integer.toString(j)), new Text(pageName));
                         }
                         context.write(new isPageName(1,pageName), new Text("~~~"));
@@ -227,6 +238,7 @@ public class oneline {
     public static class myReducer
             extends Reducer<isPageName,Text,NullWritable,Text> {
         private Set<String> pageSet = new HashSet<String>();
+        private int dummyCounter=0;
         public void reduce(isPageName key, Iterable<Text> iterable,
                            Context context) throws IOException, InterruptedException {
             String currentLink;
@@ -234,6 +246,9 @@ public class oneline {
                 for(Text val:iterable){
                     pageSet.add(val.toString());
                 }
+                dummyCounter+=1;
+                System.out.println("dummyCounter:"); //check design correctness
+                System.out.println(dummyCounter);
             }
             else {
                 Set<String> linkSet = new HashSet<String>();
@@ -260,7 +275,10 @@ public class oneline {
     }
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
+        conf.set("numSetReducers", args[2]);//set and pass numReducers
         Job job = Job.getInstance(conf, "myjob");
+        job.setNumReduceTasks(Integer.parseInt(args[2]));
+
         job.setJarByClass(myMapper.class);
 
         job.setMapperClass(myMapper.class);
@@ -277,9 +295,5 @@ public class oneline {
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
-
-
-
-
 }
 

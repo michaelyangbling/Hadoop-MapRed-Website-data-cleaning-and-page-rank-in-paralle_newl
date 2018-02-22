@@ -4,7 +4,7 @@ import org.apache.hadoop.io.WritableUtils;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
+//define customized key for data-cleaning MapRed job
 public class isPageName implements WritableComparable<isPageName> {//define customized key here
     int isPage;
     String PageName;

@@ -1,4 +1,5 @@
 /* Pseudocode:
+1.data cleaning:
 class mapper {
    map(line, text){  //when first element is 0 : dummy key
    emit( [1,pageName], linkName )  //not deal with repeating linkName per pageName here
@@ -24,6 +25,44 @@ class reducer{
 
      emit(pageName, linkNames) //e.x. ~~ separated
 }
+
+2: a map only job to allocate orignal equal pageRanks
+class mapper {
+   map(line, text){
+     emit(page~~link...~~link~~pageRank)
+   }
+}
+
+3: 10 jobs to compute pageRank
+class mapper {
+    map(line, text){
+     emit([1,page], [adjList(0),link...~~link~~pageRank])// pass graph
+     if not dangling node
+       emit([1,link],[number(1), "pageRank/lenAdjacentList"]
+     else
+       emit([0,"0"], [dangle(2), "pageRank"]
+   }
+class partitioner{
+   getPartition(
+   if dummy(0)
+     partioner to separate k reducers correspondingly
+   else
+     partition-by-Name)
+class reducer{
+  reduce( ){
+  dangleSum=0;sum=0
+  if dummy key:  // must appear on first iter
+    loop:
+     dangleSum+=somePageRank
+  else:
+    loop:
+      if adjList: recover
+      else: sum+=someValue  // (pageRank/lenAdjacentList)
+  finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
+  }
+}
+}
+
 */
 
 import java.util.*;
@@ -70,6 +109,9 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import org.apache.hadoop.mapred.JobConf;
 
+import org.apache.hadoop.mapreduce.Counters;
+import org.apache.hadoop.mapreduce.Counter;
+
 public class oneline {
 
     public static int compare(int a,int b){
@@ -93,7 +135,6 @@ public class oneline {
             Configuration conf = context.getConfiguration();
             String a=conf.get("numSetReducers");
             numSetReducers=Integer.parseInt(conf.get("numSetReducers"));
-            System.out.println(numSetReducers);
             // and then you can use it
         }
 
@@ -238,7 +279,7 @@ public class oneline {
     public static class myReducer
             extends Reducer<isPageName,Text,NullWritable,Text> {
         private Set<String> pageSet = new HashSet<String>();
-        private int dummyCounter=0;
+        //private int dummyCounter=0;
         public void reduce(isPageName key, Iterable<Text> iterable,
                            Context context) throws IOException, InterruptedException {
             String currentLink;
@@ -246,9 +287,9 @@ public class oneline {
                 for(Text val:iterable){
                     pageSet.add(val.toString());
                 }
-                dummyCounter+=1;
-                System.out.println("dummyCounter:"); //check design correctness
-                System.out.println(dummyCounter);
+                //dummyCounter+=1;
+                //System.out.println("dummyCounter:"); //check design correctness
+                //System.out.println(dummyCounter);
             }
             else {
                 Set<String> linkSet = new HashSet<String>();
@@ -269,17 +310,21 @@ public class oneline {
                     out=out+"~~"+link;
                 }
                 context.write( NullWritable.get(), new Text(out));
+                context.getCounter(myCounter.NUM_PAGES).increment(1);
+                //failed task may lead bug to counter??
+
             }
 
         }
     }
+
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         conf.set("numSetReducers", args[2]);//set and pass numReducers
         Job job = Job.getInstance(conf, "myjob");
         job.setNumReduceTasks(Integer.parseInt(args[2]));
 
-        job.setJarByClass(myMapper.class);
+        job.setJarByClass(oneline.class);
 
         job.setMapperClass(myMapper.class);
         job.setReducerClass(myReducer.class);
@@ -290,9 +335,28 @@ public class oneline {
         job.setMapOutputKeyClass(isPageName.class);
         job.setMapOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        FileInputFormat.addInputPath(job, new Path(args[0]+"/input"));
+        FileOutputFormat.setOutputPath(job, new Path(args[0]+"/output"));
+
+        boolean status=job.waitForCompletion(true);
+        Counters counters = job.getCounters();
+        Counter c1=counters.findCounter(myCounter.NUM_PAGES);
+        System.out.println(c1.getValue());
+
+        conf.set("numNodes", Long.toString(c1.getValue())/*c1.getValue()*/);
+        Job jobInitialRank= Job.getInstance(conf, "jobInitialRank");
+        jobInitialRank.setJarByClass(oneline.class);
+        jobInitialRank.setMapperClass(initialRankMapper.class);
+        jobInitialRank.setOutputKeyClass(NullWritable.class);
+        jobInitialRank.setOutputValueClass(Text.class);
+        jobInitialRank.setMapOutputKeyClass(NullWritable.class);
+        jobInitialRank.setMapOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(jobInitialRank, new Path(args[0]+"/output"));
+        FileOutputFormat.setOutputPath(jobInitialRank,
+                new Path(args[0]+"/output2"));
+        boolean status2=jobInitialRank.waitForCompletion(true);
+
+        //System.exit(status? 0 : 1);
 
     }
 }

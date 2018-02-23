@@ -15,17 +15,17 @@ import java.io.IOException;
 
 public class initialRankMapper
             extends Mapper<Object, Text, NullWritable, Text> {
-    private String numNodes;
+    private long numNodes;
     protected void setup(Context context) throws IOException,
             InterruptedException {
         Configuration conf = context.getConfiguration();
-        numNodes=conf.get("numNodes");
+        numNodes=conf.getLong("numNodes",-1);
     }
     public void map(Object key, Text value, Context context
     ) throws IOException, InterruptedException {
         String adjList=value.toString();
         context.write(NullWritable.get(),
-                new Text(adjList+"~~"+numNodes));
+                new Text(adjList+"~~"+Double.toString((double)1/numNodes)));
     }
 }
 

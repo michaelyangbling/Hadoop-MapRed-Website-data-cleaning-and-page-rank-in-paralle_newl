@@ -26,7 +26,7 @@ public class isPageName implements WritableComparable<isPageName> {//define cust
     }
 
     public int compareTo(isPageName ipn) {
-        int cmp = oneline.compare(isPage, ipn.isPage);
+        int cmp = Main.compare(isPage, ipn.isPage);
         if (cmp != 0) {
             return cmp;
         }

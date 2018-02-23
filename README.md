@@ -11,6 +11,7 @@ here I iterate 10 hadoop MapReduce jobs to run my PageRank code
 All the above jobs can be chained and run in Amazon Web services EMR.
    
    
-   Project Still ongoing, just finished step 1,2, you can use make.mk to run in AWS
+   Project  alomost done, have finished step 1,2, you can use make.mk to succesfully run in AWS, takes less than one hour when using 11 m4.large machine(set 8 reducers )
+   
    
    

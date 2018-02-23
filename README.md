@@ -9,6 +9,6 @@ The one named ..simple.. html is for local standalone debug
 All the above jobs can be chained and run in Amazon Web services EMR.
    
    
-   Project Still ongoing, just finished step 1
+   Project Still ongoing, just finished step 1,2, you can use make.mk to run in AWS
    
    

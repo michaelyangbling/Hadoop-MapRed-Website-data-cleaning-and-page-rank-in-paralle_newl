@@ -5,6 +5,7 @@ The one named ..simple.. html is for local standalone debug
 
 1. code in Hadoop MapReduce and do parallel data cleaning and transferring to Graph( adjacent list )
 2. code  in Hadoop MapReduce: parallel iterative page rank algorithm, considering dangling nodes etc.
+Give PageRank file with adjacent list and corresonding rank value  
 with probability of jumping to a website:0.15 probability of following a link: 0.85
 here I iterate 10 hadoop MapReduce jobs to run my PageRank code
 3. code parallel algorithm to sort and output top 100 pages

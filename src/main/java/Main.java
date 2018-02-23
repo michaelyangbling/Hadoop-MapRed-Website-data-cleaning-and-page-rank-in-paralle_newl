@@ -58,8 +58,8 @@ class reducer{
     loop:
       if adjList: recover
       else: sum+=someValue  // (pageRank/lenAdjacentList)
-  finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
-  emit( page, adjList+pageRank)
+    finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
+    emit( null,page+ adjList+pageRank)
   }
 }
 }
@@ -71,45 +71,13 @@ import java.util.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.io.*;
-import java.io.*;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Partitioner;
 
-
-
 import java.io.IOException;
-
-import java.io.StringReader;
-import java.net.URLDecoder;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
-
-import org.apache.hadoop.mapred.JobConf;
-
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Counter;
 
@@ -190,21 +158,16 @@ public class Main {
         conf.set("numSetReducers", args[2]);//set and pass numReducers
         Job job = Job.getInstance(conf, "myjob");
         job.setNumReduceTasks(Integer.parseInt(args[2]));
-
         job.setJarByClass(Main.class);
-
         job.setMapperClass(webPaserMapper.class);
         job.setReducerClass(dataCleanReducer.class);
         job.setPartitionerClass(dataCleanPartitioner.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-
         job.setMapOutputKeyClass(isPageName.class);
         job.setMapOutputValueClass(Text.class);
-
         FileInputFormat.addInputPath(job, new Path(args[0]+"/input"));
         FileOutputFormat.setOutputPath(job, new Path(args[0]+"/output"));
-
         boolean status=job.waitForCompletion(true);
         Counters counters = job.getCounters();
         Counter c1=counters.findCounter(myCounter.NUM_PAGES);
@@ -220,11 +183,28 @@ public class Main {
         jobInitialRank.setMapOutputValueClass(Text.class);
         FileInputFormat.addInputPath(jobInitialRank, new Path(args[0]+"/output"));
         FileOutputFormat.setOutputPath(jobInitialRank,
-                new Path(args[0]+"/output2"));
+                new Path(args[0]+"/output0"));
         boolean status2=jobInitialRank.waitForCompletion(true);
-        
+
+        for(int i=1;i<=10;i++) {
+            Job jobPageRank = Job.getInstance(conf,
+                    "jobPageRank"+Integer.toString(i));
+            jobPageRank.setNumReduceTasks(Integer.parseInt(args[2]));
+            jobPageRank.setJarByClass(Main.class);
+            jobPageRank.setMapperClass(pageRankMapper.class);
+            jobPageRank.setReducerClass(pageRankReducer.class);
+            jobPageRank.setPartitionerClass(pageRankPartitioner.class);
+            jobPageRank.setOutputKeyClass(NullWritable.class);
+            jobPageRank.setOutputValueClass(Text.class);
+            jobPageRank.setMapOutputKeyClass(isPageName.class);
+            jobPageRank.setMapOutputValueClass(customValue.class);
+            FileInputFormat.addInputPath(jobPageRank, new Path(args[0] + "/output"
+            +Integer.toString(i-1)));
+            FileOutputFormat.setOutputPath(jobPageRank, new Path(args[0] + "/output"
+            +Integer.toString(i)));
+            jobPageRank.waitForCompletion(true);
+        }
         //System.exit(status? 0 : 1);
 
     }
 }
-

@@ -6,7 +6,8 @@ class mapper {
           emit([1,link],[number(1), "pageRank/lenAdjacentList"]
         else
           emit([0,"0"], [dangle(2), "pageRank"]
-    }*/
+    }
+ */
 
 
 import org.apache.hadoop.io.*;

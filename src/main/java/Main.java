@@ -154,8 +154,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        //data cleaning
         Configuration conf = new Configuration();
-        conf.set("numSetReducers", args[2]);//set and pass numReducers
+        /*conf.set("numSetReducers", args[2]);//set and pass numReducers
         Job job = Job.getInstance(conf, "myjob");
         job.setNumReduceTasks(Integer.parseInt(args[2]));
         job.setJarByClass(Main.class);
@@ -173,6 +174,7 @@ public class Main {
         Counter c1=counters.findCounter(myCounter.NUM_PAGES);
         System.out.println(c1.getValue());
 
+        //map only to give initial page rank
         conf.setLong("numNodes",c1.getValue());
         Job jobInitialRank= Job.getInstance(conf, "jobInitialRank");
         jobInitialRank.setJarByClass(Main.class);
@@ -186,6 +188,8 @@ public class Main {
                 new Path(args[0]+"/output0"));
         boolean status2=jobInitialRank.waitForCompletion(true);
 
+
+        //iterate pageRank Algo for 10 times
         for(int i=1;i<=10;i++) {
             Job jobPageRank = Job.getInstance(conf,
                     "jobPageRank"+Integer.toString(i));
@@ -203,7 +207,21 @@ public class Main {
             FileOutputFormat.setOutputPath(jobPageRank, new Path(args[0] + "/output"
             +Integer.toString(i)));
             jobPageRank.waitForCompletion(true);
-        }
+        }*/
+
+        //parallel top-k algo
+        Job jobPageRank = Job.getInstance(conf, "jobTopK");
+        jobPageRank.setNumReduceTasks(1);//only need 1 reducer in parallel top-k algo
+        jobPageRank.setJarByClass(Main.class);
+        jobPageRank.setMapperClass(Top_k.topKpagesMapper.class);
+        jobPageRank.setReducerClass(Top_k.topKpagesReducer.class);
+        jobPageRank.setOutputKeyClass(NullWritable.class);
+        jobPageRank.setOutputValueClass(Text.class);
+        jobPageRank.setMapOutputKeyClass(NullWritable.class);
+        jobPageRank.setMapOutputValueClass(Top_k.pageRank.class);
+        FileInputFormat.addInputPath(jobPageRank, new Path(args[0]+"/output10"));
+        FileOutputFormat.setOutputPath(jobPageRank, new Path(args[0]+"/top100_Pages"));
+        jobPageRank.waitForCompletion(true);
         //System.exit(status? 0 : 1);
 
     }

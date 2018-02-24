@@ -1,11 +1,11 @@
-/*customized value for:
+/*customized value for pageRank jobs:
 class mapper {
     map(line, text){
         emit([1,page], [adjList(0),link...~~link~~pageRank])// pass graph
         if not dangling node
-        emit([1,link],[number(1), "pageRank/lenAdjacentList"]
-     else
-        emit([0,"0"], [dangle(2), "pageRank"]
+          emit([1,link],[number(1), "pageRank/lenAdjacentList"]
+        else
+          emit([0,"0"], [dangle(2), "pageRank"]
     }*/
 
 

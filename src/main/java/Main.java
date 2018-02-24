@@ -1,6 +1,6 @@
 /* All Pseudocode: //standalone outputs 18328
-1.data cleaning:
-class mapper {
+step 1.data cleaning:
+class mapper {  // webstite HTML parser
    map(line, text){  //when first element is 0 : dummy key
    emit( [1,pageName], linkName )  //not deal with repeating linkName per pageName here
    emit ( [0,dummy 1], pageName)
@@ -26,14 +26,14 @@ class reducer{
      emit(pageName, linkNames) //e.x. ~~ separated
 }
 
-2: a map only job to allocate orignal equal pageRanks
+step 2: a map only job to allocate orignal equal pageRanks
 class mapper {
    map(line, text){
      emit(page~~link...~~link~~pageRank)
    }
 }
 
-3: 10 jobs to compute pageRank
+step 3: 10 jobs to compute pageRank
 class mapper {
     map(line, text){
      emit([1,page], [adjList(0),link...~~link~~pageRank])// pass graph
@@ -56,14 +56,16 @@ class reducer{
      dangleSum+=somePageRank
   else:
     loop:
-      if adjList: recover
+      if adjList: recover graph for this node
       else: sum+=someValue  // (pageRank/lenAdjacentList)
     finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
     emit( null,page+ adjList+pageRank)
   }
 }
 }
-
+step4:  get top-k pages in parallel
+this top-k algo basically merges local top-k results from mappers to one reducer
+here, I set k to 100, that is to give top 100 pages and their page ranks
 */
 
 import java.util.*;
@@ -83,23 +85,23 @@ import org.apache.hadoop.mapreduce.Counter;
 
 public class Main {
 
-    public static int compare(int a,int b){
+    public static int compare(int a,int b){ //compare 2 numbers
         if(a<b){ return -1;}
         else if(a==b) {return 0;}
         else{return 1;}
     }
    public static class pageRankPartitioner extends Partitioner<isPageName, customValue>{
-
+      //Partitioner for pageRank jobs
        public int getPartition(isPageName key, customValue value, int numPartitions) {
            if(key.isPage==1){
                return Math.abs(key.PageName.hashCode()) % numPartitions;
            }
            else
-               {return Integer.parseInt(key.PageName);}
+               {return Integer.parseInt(key.PageName);}//deal with dummy key
        }
    }
 
-   public static class dataCleanPartitioner
+   public static class dataCleanPartitioner// Partitioner for data-cleaning job
             extends Partitioner<isPageName, Text> { //partition(hash) by station(string)
         public int getPartition(isPageName key, Text value, int numPartitions) {
             if(key.isPage==1){
@@ -146,13 +148,12 @@ public class Main {
                 }
                 context.write( NullWritable.get(), new Text(out));
                 context.getCounter(myCounter.NUM_PAGES).increment(1);
-                //failed task may lead bug to counter??
-
+                //counter to calculate total page(node) number
             }
 
         }
     }
-
+    //
     public static void main(String[] args) throws Exception {
         //data cleaning
         Configuration conf = new Configuration();

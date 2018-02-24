@@ -8,7 +8,7 @@ class reducer{
      dangleSum+=somePageRank
   else:
     loop:
-      if adjList: recover
+      if adjList: recover graph for this node(page)
       else: sum+=someValue  // (pageRank/lenAdjacentList)
     finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
     emit( page, adjList+pageRank)
@@ -56,7 +56,7 @@ public class pageRankReducer extends Reducer<isPageName,customValue,NullWritable
             //finalRank=alpha/|V| + (1-alpha)*( sum+dangleSum/|V| )
             String pageRank=Double.toString(0.15/numNodes+0.85*(sum+dangleSum/numNodes));
             context.write(NullWritable.get(), new Text(output+"~~"+pageRank));
-            if (Math.random() < 0.002){
+            if (Math.random() < 0.002){ //randomly print change of pagerank between iterations
             System.out.println(output+"~~"+pageRank
         +"delta  "  +Double.toString(Double.parseDouble(pageRank)-previousRank)+"   ");}
 

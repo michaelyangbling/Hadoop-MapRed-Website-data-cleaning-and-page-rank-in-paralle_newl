@@ -142,7 +142,7 @@ public  class webPaserMapper//website data parser
                     // Decode escaped characters in URL.
                     link = URLDecoder.decode(link, "UTF-8");
                 } catch (Exception e) {
-                    // Wiki-weirdness; use link as is.
+                    // Wiki-weirdness;
                 }
                 // Keep only html filenames ending relative paths and not containing tilde (~).
                 Matcher matcher = linkPattern.matcher(link);

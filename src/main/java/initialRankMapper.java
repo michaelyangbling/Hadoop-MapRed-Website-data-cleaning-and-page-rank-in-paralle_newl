@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class initialRankMapper
             extends Mapper<Object, Text, NullWritable, Text> {
-    private long numNodes;
+    private long numNodes; //total number of pages(nodes)
     protected void setup(Context context) throws IOException,
             InterruptedException {
         Configuration conf = context.getConfiguration();

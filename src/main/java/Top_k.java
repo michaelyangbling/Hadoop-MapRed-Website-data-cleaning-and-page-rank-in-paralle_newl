@@ -14,6 +14,9 @@ import java.util.*;
 
 import java.io.IOException;
 
+
+//this top-k algo basically merges local top-k results from mappers to one reducer
+
 public class Top_k {
 
     public static class pageRank implements Writable { // store page and its rank
@@ -49,7 +52,7 @@ public class Top_k {
                 {return -1;}
         }
     }
-    public static class topKpagesMapper//website data parser
+    public static class topKpagesMapper//get top-k from each mapper
             extends Mapper<Object, Text, NullWritable, pageRank> {
         private List<pageRank> pageList=new ArrayList<pageRank>();
         public void map(Object key, Text value, Context context
@@ -74,6 +77,7 @@ public class Top_k {
         }
     }
     public static class topKpagesReducer extends Reducer<NullWritable,pageRank,NullWritable,Text> {
+        //only one reducer is enough for merging local top-k results from mappers
         public void reduce(NullWritable key, Iterable<pageRank> values,
                            Context context) throws IOException, InterruptedException {
             List<pageRank> pageList=new ArrayList<pageRank>();

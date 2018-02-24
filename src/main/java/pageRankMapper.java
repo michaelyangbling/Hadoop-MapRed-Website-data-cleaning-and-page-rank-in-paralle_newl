@@ -25,23 +25,24 @@ public class pageRankMapper
     }
     public void map(Object key, Text value, Context context
     ) throws IOException, InterruptedException {
-        String wholeString=value.toString();
-        String[] contents=wholeString.split("~~");
+        if (!value.toString().equals("")){
+            String wholeString = value.toString();
+        String[] contents = wholeString.split("~~");
         context.write(new isPageName(1, contents[0]),
                 new customValue(0, wholeString));
-        if(contents.length>2){
-            Double outRank=Double.parseDouble(contents[contents.length-1])/(contents.length-2);
-            for(int i=1; i<=contents.length-2; i++) {
+        if (contents.length > 2) {
+            Double outRank = Double.parseDouble(contents[contents.length - 1]) / (contents.length - 2);
+            for (int i = 1; i <= contents.length - 2; i++) {
                 context.write(new isPageName(1, contents[i]),
-                        new customValue(1,Double.toString(outRank)));
+                        new customValue(1, Double.toString(outRank)));
             }
-        }
-        else{//emit([0,"j"], [dangle(2), "pageRank"]
-            for(int j=0;j<numSetReducers;j++) {
+        } else {//emit([0,"j"], [dangle(2), "pageRank"]
+            for (int j = 0; j < numSetReducers; j++) {
                 context.write(new isPageName(0, Integer.toString(j)),
-                        new customValue( 2,contents[contents.length - 1]));
+                        new customValue(2, contents[contents.length - 1]));
             }
         }
+      }
     }
 }
 

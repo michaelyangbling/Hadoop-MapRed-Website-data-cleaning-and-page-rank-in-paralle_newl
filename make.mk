@@ -31,12 +31,12 @@ awsrun:
     
 #	aws s3 rm ${awsoutput} --recursive
 	aws emr create-cluster \
-    --name "pageRank" \
+    --name "pageRank_20Machine" \
     --release-label emr-5.11.1 \
-    --instance-groups '[{"InstanceCount":10,"InstanceGroupType":"CORE","InstanceType":"m4.large"},{"InstanceCount":1,"InstanceGroupType":"MASTER","InstanceType":"m4.large"}]' \
+    --instance-groups '[{"InstanceCount":19,"InstanceGroupType":"CORE","InstanceType":"m4.large"},{"InstanceCount":1,"InstanceGroupType":"MASTER","InstanceType":"m4.large"}]' \
     --applications Name=Hadoop \
-    --steps '[{"Args":["Main","s3://michaelyangcs/workFold"," ","8"],"Type":"CUSTOM_JAR","Jar":"s3://michaelyangcs/wc-1.0.jar","ActionOnFailure":"TERMINATE_CLUSTER","Name":"Custom JAR"}]' \
---log-uri s3://michaelyangcs/log2 \
+    --steps '[{"Args":["Main","s3://michaelyangcs/workFold"," ","18"],"Type":"CUSTOM_JAR","Jar":"s3://michaelyangcs/wc-1.0.jar","ActionOnFailure":"TERMINATE_CLUSTER","Name":"Custom JAR"}]' \
+--log-uri s3://michaelyangcs/log_20Machine \
 --service-role EMR_DefaultRole \
 --ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=subnet-520b7f0f \
 --region us-east-1 \

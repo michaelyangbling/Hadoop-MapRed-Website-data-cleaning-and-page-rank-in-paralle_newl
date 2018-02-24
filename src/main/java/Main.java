@@ -1,4 +1,4 @@
-/* All Pseudocode:
+/* All Pseudocode: //standalone outputs 18328
 1.data cleaning:
 class mapper {
    map(line, text){  //when first element is 0 : dummy key
@@ -156,7 +156,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         //data cleaning
         Configuration conf = new Configuration();
-        /*conf.set("numSetReducers", args[2]);//set and pass numReducers
+        conf.set("numSetReducers", args[2]);//set and pass numReducers
         Job job = Job.getInstance(conf, "myjob");
         job.setNumReduceTasks(Integer.parseInt(args[2]));
         job.setJarByClass(Main.class);
@@ -207,7 +207,7 @@ public class Main {
             FileOutputFormat.setOutputPath(jobPageRank, new Path(args[0] + "/output"
             +Integer.toString(i)));
             jobPageRank.waitForCompletion(true);
-        }*/
+        }
 
         //parallel top-k algo
         Job jobPageRank = Job.getInstance(conf, "jobTopK");

@@ -23,9 +23,11 @@ public class initialRankMapper
     }
     public void map(Object key, Text value, Context context
     ) throws IOException, InterruptedException {
-        String adjList=value.toString();
-        context.write(NullWritable.get(),
-                new Text(adjList+"~~"+Double.toString((double)1/numNodes)));
+        if (!value.toString().equals("")) {
+            String adjList = value.toString();
+            context.write(NullWritable.get(),
+                    new Text(adjList + "~~" + Double.toString((double) 1 / numNodes)));
+        }
     }
 }
 

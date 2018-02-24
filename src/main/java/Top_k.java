@@ -1,5 +1,6 @@
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -15,7 +16,7 @@ import java.io.IOException;
 
 public class Top_k {
 
-    public static class pageRank{ // store page and its rank
+    public static class pageRank implements Writable { // store page and its rank
         String page;
         double rank;
         pageRank(){}
@@ -53,10 +54,12 @@ public class Top_k {
         private List<pageRank> pageList=new ArrayList<pageRank>();
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
-            String[] contents=value.toString().split("~~");
-            pageList.add( new pageRank(contents[0],
-                    Double.parseDouble(contents[contents.length-1])) );
+            if (!value.toString().equals("")) {
+                String[] contents = value.toString().split("~~");
+                pageList.add(new pageRank(contents[0],
+                        Double.parseDouble(contents[contents.length - 1])));
 
+            }
         }
         protected void cleanup(Context context)
                 throws IOException, InterruptedException{

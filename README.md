@@ -26,6 +26,7 @@ In a maven project with this pom.xml, cd to the project directory,  in command l
 make sure my make.mk makefile is in directory,in command line: make -f make.mk awsrun
 
 It takes 58min when using 11  m4.large( a cheap machine on AWS)  machines (set 8 reduce tasks )
+
 It takes 36min when using 20 m4.large machines (set 19 reduce tasks )
 Web parsing and Data-cleaning, each of pageRank iterations and the final top-K algorithms all show about 2 times speedup.
 

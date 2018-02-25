@@ -19,11 +19,11 @@ step4. code parallel algorithm to sort and output top 100 pages .All the above j
 
 you can use make.mk to succesfully run in AWS, 
 
-1.build the jar file
+1.build the jar file.
 In a maven project with this pom.xml, cd to the project directory,  in command line: mvn clean install 
 
-2.Amazon Web Services Run
-make sure my make.mk makefile is in directory,in command line: make -f make.mk awsrun
+2.Amazon Web Services Run.
+Make sure my make.mk makefile is in directory,in command line: make -f make.mk awsrun
 
 It takes 58min when using 11  m4.large( a cheap machine on AWS)  machines (set 8 reduce tasks )
 

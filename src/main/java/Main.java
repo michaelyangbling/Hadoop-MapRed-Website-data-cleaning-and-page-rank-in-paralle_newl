@@ -1,4 +1,4 @@
-/* All Pseudocode: //standalone outputs 18328
+/* All Pseudocode:
 step 1.data cleaning:
 class mapper {  // webstite HTML parser
    map(line, text){  //when first element is 0 : dummy key
@@ -21,7 +21,7 @@ class reducer{
      first recover collection of pageNames from ([0,dummy k], pageNames )
      when adding linkNames to pageName, ignore those not in collection of pageNames,
      and don't add duplicates
-     a set data structure is sufficient for this requirement
+     a SET data structure is sufficient for this requirement
 
      emit(pageName, linkNames) //e.x. ~~ separated
 }
@@ -66,6 +66,14 @@ class reducer{
 step4:  get top-k pages in parallel
 this top-k algo basically merges local top-k results from mappers to one reducer
 here, I set k to 100, that is to give top 100 pages and their page ranks
+
+map(){
+emit(dummy, list of local top-k )
+}
+reduce(){ //only one reducer and only one reduce call
+for top-k pages:
+  emit(null, page-rank )
+}
 */
 
 import java.util.*;

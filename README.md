@@ -30,4 +30,4 @@ It takes 58min when using 11  m4.large( a cheap machine on AWS)  machines (set 8
 It takes 36min when using 20 m4.large machines (set 19 reduce tasks ).
 Web parsing and Data-cleaning, each of pageRank iterations and the final top-K algorithms all show about 2 times speedup.
 
-So even though the data is bigger, you can simply use more machines(workers) to bring even more speedup for this data pipeline I built. 
+So even though the data is much bigger, you can simply use more machines(workers) to bring even more speedup for this data pipeline I built. 

@@ -1,7 +1,7 @@
 # Hadoop-MapRed-Website-data-cleaning-and-page-rank-in-parallel
 
 
-This uses 2006 Wikipedia website data of 100GB  before compression, including millions of pages
+This uses whole Wikipedia website data in 2006 of 100GB  before compression, including millions of pages
 
 The compressed file is in https://drive.google.com/drive/folders/1IIySfwwyvup2cy2bP4BfFaTYoFUSbWlK
 

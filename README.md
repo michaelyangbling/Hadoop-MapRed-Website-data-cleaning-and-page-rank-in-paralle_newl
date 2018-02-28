@@ -7,7 +7,9 @@ The compressed file is in https://drive.google.com/drive/folders/1IIySfwwyvup2cy
 
 The one named ..simple.. html is for local standalone debug.
 
-step1,2: code in Hadoop MapReduce and do parallel HTML parsing ,data cleaning and transferring to Graph( adjacent list ).
+step1,2: code in Hadoop MapReduce and do parallel HTML parsing( extract important links),data cleaning(avoid duplicates) and transferring to Graph( adjacent list ). 
+Here I delete link names that are pointed but not in the link name collection, also one can easily add them as dangling nodes.
+
 step3. code in Hadoop MapReduce: parallel iterative page rank algorithm, considering dangling nodes etc. Give PageRank file with adjacent list and corresonding rank value.
 
 PageRank Formula is in page rank formula.pdf.
@@ -31,3 +33,8 @@ It takes 36min when using 20 m4.large machines (set 19 reduce tasks ).
 Web parsing and Data-cleaning, each of pageRank iterations and the final top-K algorithms all show about 2 times speedup.
 
 So even though the data is much bigger, you can simply use more machines(workers) to bring even more speedup for this data pipeline I built. 
+
+final results using different number of machines are same, ensured by algorithm stability. And result makes sense, since Wikipedia is headquarted in US. 
+Also, years including and before 2006 goes down with the order of year, that is because this is 2006 Wikipedia data. 
+
+

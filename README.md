@@ -1,5 +1,8 @@
 # Hadoop-MapRed-Website-data-cleaning-and-page-rank-in-parallel
 
+Spark written in scala, considering pages that are pointed but not in the collection as dangling nodes, is in another repo: https://github.com/michaelyangbling/spark_version_wikipedia_pageRank
+This MapReduce version doesn't consider pages that are pointed but not in the collection.
+So two version's results are similiar but have minor differences.
 
 This uses whole Wikipedia website data in 2006 of 100GB  before compression, including millions of pages
 
